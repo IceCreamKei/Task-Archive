@@ -100,3 +100,105 @@ fn main() {
     );
     println!("{:#?}", test.tasks());
 }
+
+// Extensive test cases for all features
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn adds_task_with_correct_id() {
+        let mut manager = TaskManager::new();
+
+        manager.add(
+            "Exercise".into(),
+            TaskType::Standard,
+        );
+
+        assert_eq!(manager.tasks().len(), 1);
+        assert_eq!(manager.tasks()[0].id, 1);
+        assert_eq!(manager.tasks()[0].desc, "Exercise");
+        assert!(!manager.tasks()[0].completed);
+    }
+
+    #[test]
+    fn progresses_standard_task() {
+        let mut manager = TaskManager::new();
+
+        manager.add(
+            "Exercise".into(),
+            TaskType::Standard,
+        );
+
+        let result = manager.progress(1);
+
+        assert!(result.is_ok());
+        assert!(manager.tasks()[0].completed);
+    }
+
+    #[test]
+    fn progresses_numbered_task() {
+        let mut manager = TaskManager::new();
+
+        manager.add(
+            "Drink water".into(),
+            TaskType::Numbered {
+                goal: 2,
+                progress: 0,
+            },
+        );
+
+        manager.progress(1).unwrap();
+
+        let task = &manager.tasks()[0];
+
+        assert_eq!(
+            task.task_type,
+            TaskType::Numbered {
+                goal: 2,
+                progress: 1,
+            }
+        );
+
+        assert!(!task.completed);
+
+        manager.progress(1).unwrap();
+
+        let task = &manager.tasks()[0];
+
+        assert_eq!(
+            task.task_type,
+            TaskType::Numbered {
+                goal: 2,
+                progress: 2,
+            }
+        );
+
+        assert!(task.completed);
+    }
+
+    #[test]
+    fn returns_error_for_missing_task() {
+        let mut manager = TaskManager::new();
+
+        let result = manager.progress(99);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn removes_task_without_renumbering_remaining_tasks() {
+        let mut manager = TaskManager::new();
+
+        manager.add("First".into(), TaskType::Standard);
+        manager.add("Second".into(), TaskType::Standard);
+        manager.add("Third".into(), TaskType::Standard);
+
+        let removed = manager.remove(2).unwrap();
+
+        assert_eq!(removed.desc, "Second");
+        assert_eq!(manager.tasks().len(), 2);
+        assert_eq!(manager.tasks()[0].id, 1);
+        assert_eq!(manager.tasks()[1].id, 3);
+    }
+}
