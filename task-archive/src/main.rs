@@ -9,6 +9,7 @@ pub struct Task {
     pub id: usize,
     pub desc: String,
     pub task_type: TaskType,
+    pub completed: bool,
 }
 
 impl Task{
@@ -16,7 +17,9 @@ impl Task{
         Self { 
             id, 
             desc, 
-            task_type: (TaskType::Standard) }
+            task_type: (TaskType::Standard),
+            completed: false, // Incomplete by default
+        }
     }
 }
 
