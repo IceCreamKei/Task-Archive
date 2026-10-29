@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "desc": "Buy groceries",
+    "task_type": "Standard",
+    "completed": true
+  },
+  {
+    "id": 2,
+    "desc": "Drink water",
+    "task_type": {
+      "Numbered": {
+        "goal": 8,
+        "progress": 2
+      }
+    },
+    "completed": false
+  },
+  {
+    "id": 3,
+    "desc": "Fix kitchen lightbulb",
+    "task_type": "Standard",
+    "completed": false
+  }
+]

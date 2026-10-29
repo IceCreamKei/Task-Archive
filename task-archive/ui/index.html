@@ -1,0 +1,508 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Archive</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eaf5ff;
+            color: #25466b;
+        }
+
+        header {
+            background: white;
+            padding: 20px 8%;
+            border-bottom: 3px solid #8dd4ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: #2587d8;
+            font-size: 23px;
+            font-weight: bold;
+        }
+
+        header span {
+            font-size: 12px;
+            color: #7c9db9;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 18px;
+        }
+
+        .banner {
+            background: linear-gradient(120deg, #3297e8, #8bdcff);
+            padding: 30px;
+            border-radius: 18px;
+            color: white;
+            margin-bottom: 22px;
+        }
+
+        .banner small {
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .banner h1 {
+            margin: 14px 0;
+            font-size: 34px;
+        }
+
+        .banner p {
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #d5eaff;
+        }
+
+        .stat p {
+            font-size: 12px;
+            color: #7c9db9;
+            margin-bottom: 10px;
+        }
+
+        .stat h2 {
+            color: #2587d8;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            gap: 10px;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 11px 15px;
+            font-weight: bold;
+        }
+
+        .add-btn, .complete-btn {
+            background: #3297e8;
+            color: white;
+        }
+
+        .add-btn:hover, .complete-btn:hover {
+            background: #2077c2;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .filter {
+            background: white;
+            color: #6686a5;
+            border: 1px solid #d5eaff;
+        }
+
+        .filter.active {
+            background: #3297e8;
+            color: white;
+        }
+
+        #task-form {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        #task-form.show {
+            display: block;
+        }
+
+        #task-form input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 1px solid #c8e0f5;
+            border-radius: 8px;
+        }
+
+        .task {
+            background: white;
+            border: 1px solid #d5eaff;
+            padding: 18px;
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 13px;
+        }
+
+        .task.done {
+            background: #f1fff9;
+            border-color: #a9e8d1;
+        }
+
+        .task-icon {
+            background: #e4f4ff;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            font-size: 23px;
+            flex-shrink: 0;
+        }
+
+        .task-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-info h3 {
+            font-size: 15px;
+            overflow-wrap: anywhere;
+            margin-bottom: 8px;
+        }
+
+        .task-info p {
+            color: #7c9db9;
+            font-size: 12px;
+        }
+
+        .progress-bar {
+            height: 7px;
+            background: #e3eff8;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress {
+            height: 100%;
+            background: #42b9f5;
+            transition: width 0.2s;
+        }
+
+        .done .progress {
+            background: #42c9a0;
+        }
+
+        .task-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 7px;
+        }
+
+        .remove-btn {
+            background: transparent;
+            color: #e27686;
+            font-size: 11px;
+        }
+
+        .complete-btn:disabled {
+            background: #cdeee2;
+            color: #438c76;
+            cursor: default;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px;
+            background: white;
+            border-radius: 12px;
+            color: #7c9db9;
+        }
+
+        footer {
+            text-align: center;
+            color: #7c9db9;
+            font-size: 12px;
+            padding: 20px;
+        }
+
+        @media (max-width: 550px) {
+            header {
+                padding: 17px;
+            }
+
+            .logo {
+                font-size: 18px;
+            }
+
+            .banner {
+                padding: 23px;
+            }
+
+            .banner h1 {
+                font-size: 28px;
+            }
+
+            .stats {
+                gap: 8px;
+            }
+
+            .stat {
+                padding: 12px;
+            }
+
+            .stat h2 {
+                font-size: 22px;
+            }
+
+            .stat p {
+                font-size: 10px;
+            }
+
+            .task {
+                padding: 12px;
+                gap: 9px;
+            }
+
+            .task-icon {
+                width: 38px;
+                height: 38px;
+            }
+
+            .task-info h3 {
+                font-size: 13px;
+            }
+
+            .complete-btn {
+                padding: 9px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">TASK ARCHIVE</div>
+    <span>WORK IN PROGRESS</span>
+</header>
+
+<main>
+
+    <section class="stats">
+        <div class="stat">
+            <p>TOTAL TASKS</p>
+            <h2 id="total">0</h2>
+        </div>
+        <div class="stat">
+            <p>COMPLETED</p>
+            <h2 id="completed">0</h2>
+        </div>
+        <div class="stat">
+            <p>COMPLETION</p>
+            <h2 id="rate">0%</h2>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-header">
+            <div>
+                <h2>List of Tasks</h2>
+            </div>
+            <button class="add-btn" id="show-form">+ Add Task</button>
+        </div>
+
+        <form id="task-form">
+            <h3>New Task</h3>
+
+            <input id="description"
+                   type="text"
+                   placeholder="Task description"
+                   maxlength="150"
+                   required>
+
+            <input id="goal"
+                   type="number"
+                   min="1"
+                   max="1000000"
+                   placeholder="Goal (optional, e.g. 8)">
+
+            <button class="add-btn" type="submit">Create Task</button>
+            <button type="button" id="cancel">Cancel</button>
+        </form>
+
+        <div class="filters">
+            <button class="filter active" data-filter="all">All</button>
+            <button class="filter" data-filter="active">In Progress</button>
+            <button class="filter" data-filter="done">Completed</button>
+        </div>
+
+        <div id="tasks"></div>
+    </section>
+</main>
+
+<script>
+    const TASKS_URL = "../tasks.json";
+
+    // Disable every button and input, making the UI display only
+    document.querySelectorAll("button, input").forEach(element => {
+        element.disabled = true;
+    });
+
+    // TODO: Date function
+    async function loadTasks() {
+        const container = document.getElementById("tasks");
+
+        try {
+            // Read tasks from the project's tasks.json file.
+            const response = await fetch(TASKS_URL, {
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+
+            const tasks = await response.json();
+
+            if (!Array.isArray(tasks)) {
+                throw new Error("tasks.json must contain a JSON array.");
+            }
+
+            renderTasks(tasks);
+
+        } catch (error) {
+            console.error("Failed to load tasks.json:", error);
+
+            container.textContent =
+                "Unable to load tasks.json.";
+        }
+    }
+
+    // Convert Rust TaskType enum into display information.
+    function getTaskType(task) {
+        const type = task.task_type;
+
+        // Rust enum: Standard
+        if (type === "Standard") {
+            return {
+                goal: 1,
+                progress: task.completed ? 1 : 0,
+                label: task.completed ? "TASK COMPLETE" : "STANDARD TASK"
+            };
+        }
+
+        // Rust enum: { "Numbered": { "goal": [int], "progress": [int] } }
+        if (type && type.Numbered) {
+            const goal = type.Numbered.goal;
+            const progress = type.Numbered.progress;
+
+            return {
+                goal,
+                progress,
+                label: task.completed
+                    ? "TASK COMPLETE"
+                    : `PROGRESS: ${progress} / ${goal}`
+            };
+        }
+
+        return {
+            goal: 1,
+            progress: 0,
+            label: "UNKNOWN TASK TYPE"
+        };
+    }
+
+    // Render tasks as read-only cards.
+    function renderTasks(tasks) {
+        const container = document.getElementById("tasks");
+        container.replaceChildren();
+
+        const total = tasks.length;
+        const completed = tasks.filter(task => task.completed).length;
+        const rate = total === 0
+            ? 0
+            : Math.round((completed / total) * 100);
+
+        document.getElementById("total").textContent = total;
+        document.getElementById("completed").textContent = completed;
+        document.getElementById("rate").textContent = rate + "%";
+
+        if (total === 0) {
+            const empty = document.createElement("div");
+            empty.className = "empty";
+            empty.textContent = "No tasks found in tasks.json.";
+            container.appendChild(empty);
+            return;
+        }
+
+        tasks.forEach(task => {
+            const type = getTaskType(task);
+
+            const percent = type.goal > 0
+                ? Math.min(100, (type.progress / type.goal) * 100)
+                : 0;
+
+            const card = document.createElement("article");
+            card.className = "task" + (task.completed ? " done" : "");
+
+            const icon = document.createElement("div");
+            icon.className = "task-icon";
+            icon.textContent = task.completed ? "OK" : "X";
+
+            const info = document.createElement("div");
+            info.className = "task-info";
+
+            const title = document.createElement("h3");
+            title.textContent = `${task.id}. ${task.desc}`;
+
+            const status = document.createElement("p");
+            status.textContent = type.label;
+
+            const bar = document.createElement("div");
+            bar.className = "progress-bar";
+
+            const fill = document.createElement("div");
+            fill.className = "progress";
+            fill.style.width = percent + "%";
+
+            bar.appendChild(fill);
+            info.append(title, status, bar);
+
+            card.append(icon, info);
+            container.appendChild(card);
+        });
+    }
+
+    // Load tasks when the page opens.
+    loadTasks();
+
+</script>
+
+</body>
+</html>
