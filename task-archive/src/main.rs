@@ -1,3 +1,5 @@
+use serde::
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum TaskType {
     Standard, // Tasks that only need to be checked through boolean
