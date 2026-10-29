@@ -37,11 +37,8 @@ enum Commands {
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum TaskType {
-    Standard, // Tasks that only need to be checked through boolean
-    Numbered {
-        goal: u32,
-        progress: u32
-    } // Quantifiable Tasks (Drink "8" cups of water)
+    Standard,                              // Tasks that only need to be checked through boolean
+    Numbered { goal: u32, progress: u32 }, // Quantifiable Tasks (Drink "8" cups of water)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -52,11 +49,11 @@ pub struct Task {
     pub completed: bool,
 }
 
-impl Task{
-    pub fn new_task(id: usize, desc: String, task_type: TaskType) -> Self{
-        Self { 
-            id, 
-            desc, 
+impl Task {
+    pub fn new_task(id: usize, desc: String, task_type: TaskType) -> Self {
+        Self {
+            id,
+            desc,
             task_type,
             completed: false, // Incomplete by default
         }
@@ -79,10 +76,10 @@ impl TaskManager {
 
     // This function adds a task with its specific type/payload
     pub fn add(&mut self, description: String, task_type: TaskType) {
-	    let task = Task::new_task(self.next_id, description, task_type);
-	    self.next_id += 1;
-	    self.tasks.push(task);
-	}
+        let task = Task::new_task(self.next_id, description, task_type);
+        self.next_id += 1;
+        self.tasks.push(task);
+    }
 
     // This function progresses or finishes a task. (Standard is marked complete. Numbered increments by 1 until goal is reached)
     pub fn progress(&mut self, id: usize) -> Result<(), String> {
@@ -120,7 +117,7 @@ impl TaskManager {
         Ok(self.tasks.remove(index))
     }
 
-	// This function fetches a task
+    // This function fetches a task
     pub fn tasks(&self) -> &[Task] {
         &self.tasks
     }
@@ -128,13 +125,13 @@ impl TaskManager {
     // This function allows the task manager to set id to the latest id
     pub fn from_tasks(tasks: Vec<Task>) -> Self {
         let next_id = tasks
-        .iter()
-        .map(|task| task.id)
-        .max()
-        .unwrap_or(0)
-        .saturating_add(1);
+            .iter()
+            .map(|task| task.id)
+            .max()
+            .unwrap_or(0)
+            .saturating_add(1);
 
-        Self {tasks, next_id}
+        Self { tasks, next_id }
     }
 }
 
@@ -144,19 +141,17 @@ pub fn load_tasks(path: &Path) -> io::Result<Vec<Task>> {
         return Ok(Vec::new());
     }
     let contents = fs::read_to_string(path)?;
-    let tasks = serde_json::from_str(&contents)
-        .map_err(io::Error::other)?;
+    let tasks = serde_json::from_str(&contents).map_err(io::Error::other)?;
 
     Ok(tasks)
 }
 
 pub fn save_tasks(path: &Path, tasks: &[Task]) -> io::Result<()> {
-    let contents = serde_json::to_string_pretty(tasks)
-        .map_err(io::Error::other)?;
+    let contents = serde_json::to_string_pretty(tasks).map_err(io::Error::other)?;
     fs::write(path, contents)
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let saved_tasks = load_tasks(Path::new(DB_FILE))?;
     let mut manager = TaskManager::from_tasks(saved_tasks);
@@ -167,10 +162,7 @@ fn main() {
                     eprintln!("Error: Goal must be greater than zero.");
                     return Ok(());
                 }
-                Some(goal) => TaskType::Numbered {
-                    goal,
-                    progress: 0,
-                },
+                Some(goal) => TaskType::Numbered { goal, progress: 0 },
                 None => TaskType::Standard,
             };
             manager.add(description, task_type);
@@ -191,19 +183,12 @@ fn main() {
 
                     match &task.task_type {
                         TaskType::Standard => {
-                            println!(
-                                "{} {}. {}",
-                                status, task.id, task.desc
-                            );
+                            println!("{} {}. {}", status, task.id, task.desc);
                         }
                         TaskType::Numbered { goal, progress } => {
                             println!(
                                 "{} {}. {} ({}/{})",
-                                status,
-                                task.id,
-                                task.desc,
-                                progress,
-                                goal
+                                status, task.id, task.desc, progress, goal
                             );
                         }
                     }
@@ -211,25 +196,21 @@ fn main() {
             }
         }
 
-        Commands::Progress { id } | Commands::Done { id } => {
-            match manager.progress(id) {
-                Ok(()) => {
-                    save_tasks(Path::new(DB_FILE), manager.tasks())?;
-                    println!("Task {} updated.", id);
-                }
-                Err(error) => eprintln!("Error: {}", error),
+        Commands::Progress { id } | Commands::Done { id } => match manager.progress(id) {
+            Ok(()) => {
+                save_tasks(Path::new(DB_FILE), manager.tasks())?;
+                println!("Task {} updated.", id);
             }
-        }
+            Err(error) => eprintln!("Error: {}", error),
+        },
 
-        Commands::Remove { id } => {
-            match manager.remove(id) {
-                Ok(task) => {
-                    save_tasks(Path::new(DB_FILE), manager.tasks())?;
-                    println!("Removed task: {}", task.desc);
-                }
-                Err(error) => eprintln!("Error: {}", error),
+        Commands::Remove { id } => match manager.remove(id) {
+            Ok(task) => {
+                save_tasks(Path::new(DB_FILE), manager.tasks())?;
+                println!("Removed task: {}", task.desc);
             }
-        }
+            Err(error) => eprintln!("Error: {}", error),
+        },
     }
 
     Ok(())
@@ -244,10 +225,7 @@ mod tests {
     fn adds_task_with_correct_id() {
         let mut manager = TaskManager::new();
 
-        manager.add(
-            "Exercise".into(),
-            TaskType::Standard,
-        );
+        manager.add("Exercise".into(), TaskType::Standard);
 
         assert_eq!(manager.tasks().len(), 1);
         assert_eq!(manager.tasks()[0].id, 1);
@@ -259,10 +237,7 @@ mod tests {
     fn progresses_standard_task() {
         let mut manager = TaskManager::new();
 
-        manager.add(
-            "Exercise".into(),
-            TaskType::Standard,
-        );
+        manager.add("Exercise".into(), TaskType::Standard);
 
         let result = manager.progress(1);
 
