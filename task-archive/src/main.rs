@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
-use std::path::{Path, Pathbuf};
+use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand};
 
-const DB_FILE: &str = "tasks.json"
+const DB_FILE: &str = "tasks.json";
 
 // basic interface for project
 #[derive(Parser)]
@@ -26,7 +26,7 @@ enum Commands {
     List,
     Progress {
         id: usize,
-    }
+    },
     Done {
         id: usize,
     },
