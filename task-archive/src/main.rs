@@ -1,12 +1,18 @@
-use serde::
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::io;
+use std::path::Path;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum TaskType {
     Standard, // Tasks that only need to be checked through boolean
-    Numbered {goal: u32, progress: u32} // Quantifiable Tasks (Drink "8" cups of water)
+    Numbered {
+        goal: u32,
+        progress: u32
+    } // Quantifiable Tasks (Drink "8" cups of water)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Task {
     pub id: usize,
     pub desc: String,
@@ -98,6 +104,24 @@ impl TaskManager {
 
         Self {tasks, next_id}
     }
+}
+
+// Saving and loading tasks are here
+pub fn load_tasks(path: &Path) -> io::Result<Vec<Task>> {
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let contents = fs::read_to_string(path)?;
+    let tasks = serde_json::from_str(&contents)
+        .map_err(io::Error::other)?;
+
+    Ok(tasks)
+}
+
+pub fn save_tasks(path: &Path, tasks: &[Task]) -> io::Result<()> {
+    let contents = serde_json::to_string_pretty(tasks)
+        .map_err(io::Error::other)?;
+    fs::write(path, contents)
 }
 
 fn main() {
