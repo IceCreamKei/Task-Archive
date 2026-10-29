@@ -157,19 +157,82 @@ pub fn save_tasks(path: &Path, tasks: &[Task]) -> io::Result<()> {
 }
 
 fn main() {
-    let mut test = TaskManager::new();
-    test.add(
-        "Get Some Exercise".into(),
-        TaskType::Standard,
-    );
-    test.add(
-        "Drink Water".into(),
-        TaskType::Numbered {
-            goal: 8,
-            progress: 0,
-        },
-    );
-    println!("{:#?}", test.tasks());
+    let cli = Cli::parse();
+    let saved_tasks = load_tasks(Path::new(DB_FILE))?;
+    let mut manager = TaskManager::from_tasks(saved_tasks);
+    match cli.command {
+        Commands::Add { description, goal } => {
+            let task_type = match goal {
+                Some(0) => {
+                    eprintln!("Error: Goal must be greater than zero.");
+                    return Ok(());
+                }
+                Some(goal) => TaskType::Numbered {
+                    goal,
+                    progress: 0,
+                },
+                None => TaskType::Standard,
+            };
+            manager.add(description, task_type);
+            save_tasks(Path::new(DB_FILE), manager.tasks())?;
+            println!("Task added successfully.");
+        }
+
+        Commands::List => {
+            if manager.tasks().is_empty() {
+                println!("No tasks found.");
+            } else {
+                for task in manager.tasks() {
+                    let status = if task.completed {
+                        "[Complete]"
+                    } else {
+                        "[Incomplete]"
+                    };
+
+                    match &task.task_type {
+                        TaskType::Standard => {
+                            println!(
+                                "{} {}. {}",
+                                status, task.id, task.desc
+                            );
+                        }
+                        TaskType::Numbered { goal, progress } => {
+                            println!(
+                                "{} {}. {} ({}/{})",
+                                status,
+                                task.id,
+                                task.desc,
+                                progress,
+                                goal
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        Commands::Progress { id } | Commands::Done { id } => {
+            match manager.progress(id) {
+                Ok(()) => {
+                    save_tasks(Path::new(DB_FILE), manager.tasks())?;
+                    println!("Task {} updated.", id);
+                }
+                Err(error) => eprintln!("Error: {}", error),
+            }
+        }
+
+        Commands::Remove { id } => {
+            match manager.remove(id) {
+                Ok(task) => {
+                    save_tasks(Path::new(DB_FILE), manager.tasks())?;
+                    println!("Removed task: {}", task.desc);
+                }
+                Err(error) => eprintln!("Error: {}", error),
+            }
+        }
+    }
+
+    Ok(())
 }
 
 // Extensive test cases for all features
