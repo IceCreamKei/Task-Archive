@@ -1,7 +1,39 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, Pathbuf};
+
+use clap::{Parser, Subcommand};
+
+const DB_FILE: &str = "tasks.json"
+
+// basic interface for project
+#[derive(Parser)]
+#[command(name = "task-archive")]
+#[command(about = "A simple persistent task manager")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Add {
+        description: String,
+        #[arg(long)]
+        goal: Option<u32>,
+    },
+    List,
+    Progress {
+        id: usize,
+    }
+    Done {
+        id: usize,
+    },
+    Remove {
+        id: usize,
+    },
+}
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum TaskType {
