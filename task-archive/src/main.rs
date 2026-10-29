@@ -79,9 +79,22 @@ impl TaskManager {
 
         Ok(self.tasks.remove(index))
     }
+
 	// This function fetches a task
     pub fn tasks(&self) -> &[Task] {
         &self.tasks
+    }
+
+    // This function allows the task manager to set id to the latest id
+    pub fn from_tasks(tasks: Vec<Task>) -> Self {
+        let next_id = tasks
+        .iter()
+        .map(|task| task.id)
+        .max()
+        .unwrap_or(0)
+        .saturating_add(1);
+
+        Self {tasks, next_id}
     }
 }
 
